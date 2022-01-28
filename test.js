@@ -43,28 +43,46 @@ describe('reworder', () => {
   })
 
   it('replaces words', () => {
-    const string = 'foo bar baz bam hello world'
+    const input = 'foo bar baz bam hello world'
     const reword = reworder({ bar: 'foo', foo: 'bar' })
-    const result = reword(string)
+    const result = reword(input)
 
-    assert.strictEqual(result, 'bar foo baz bam hello world')
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'foo', index: 0, key: 'bar' },
+        { match: 'bar', index: 4, key: 'foo' }
+      ],
+
+      output: 'bar foo baz bam hello world'
+    })
   })
 
   it('replaces words (case insensitive)', () => {
-    const string = 'foo bAr baz BaM hello world'
+    const input = 'foo bAr baz BaM hello world'
 
     const reword = reworder(
       { bar: 'foo', foo: 'bar' },
       { caseInsensitive: true }
     )
 
-    const result = reword(string)
+    const result = reword(input)
 
-    assert.strictEqual(result, 'bar foo baz BaM hello world')
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'foo', index: 0, key: 'bar' },
+        { match: 'bAr', index: 4, key: 'foo' }
+      ],
+
+      output: 'bar foo baz BaM hello world'
+    })
   })
 
   it('replaces words and phrase', () => {
-    const string = 'foo bar baz bam hello world'
+    const input = 'foo bar baz bam hello world'
 
     const reword = reworder({
       bar: 'foo',
@@ -72,24 +90,53 @@ describe('reworder', () => {
       helloworld: 'hello world'
     })
 
-    const result = reword(string)
+    const result = reword(input)
 
-    assert.strictEqual(result, 'bar foo baz bam helloworld')
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'foo', index: 0, key: 'bar' },
+        { match: 'bar', index: 4, key: 'foo' },
+        { match: 'hello world', index: 16, key: 'helloworld' }
+      ],
+
+      output: 'bar foo baz bam helloworld'
+    })
   })
 
   it('replaces with regex', () => {
-    const string = 'foo bar baz bam hello world'
+    const input = 'foo bar baz bam hello world'
     const reword = reworder({ foo: /ba\S*/ })
-    const result = reword(string)
+    const result = reword(input)
 
-    assert.strictEqual(result, 'foo foo foo foo hello world')
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'bar', index: 4, key: 'foo' },
+        { match: 'baz', index: 8, key: 'foo' },
+        { match: 'bam', index: 12, key: 'foo' }
+      ],
+
+      output: 'foo foo foo foo hello world'
+    })
   })
 
   it('replaces multiple words with single word', () => {
-    const string = 'foo bar baz bam hello world'
+    const input = 'foo bar baz bam hello world'
     const reword = reworder({ foo: ['bar', 'bam'] })
-    const result = reword(string)
+    const result = reword(input)
 
-    assert.strictEqual(result, 'foo foo baz foo hello world')
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'bar', index: 4, key: 'foo' },
+        { match: 'bam', index: 12, key: 'foo' }
+      ],
+
+      output: 'foo foo baz foo hello world'
+    })
   })
 })

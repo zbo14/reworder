@@ -61,25 +61,29 @@ const reworder = (config, options = {}) => {
     return keyInfos[Math.max(0, --i)].key
   }
 
-  const reword = string => {
+  const reword = input => {
+    const matches = []
+
     let match
     let net = 0
-    let result = string
+    let output = input
 
-    while ((match = regex.exec(string))) {
-      const index = match.slice(1, lastIndex).findIndex(Boolean) + 1
-      const key = getKey(index)
+    while ((match = regex.exec(input))) {
+      const keyIndex = match.slice(1, lastIndex).findIndex(Boolean) + 1
+      const key = getKey(keyIndex)
+      const index = match.index - net
 
-      result = (
-        result.slice(0, match.index - net) +
+      output = (
+        output.slice(0, index) +
         key +
-        result.slice(match.index - net + match[0].length)
+        output.slice(index + match[0].length)
       )
 
+      matches.push({ match: match[0], index: match.index, key })
       net += match[0].length - key.length
     }
 
-    return result
+    return { input, matches, output }
   }
 
   reword.regex = regex
