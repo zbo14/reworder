@@ -1,6 +1,6 @@
 'use strict'
 
-const isObjectLiteral = x => x?.constructor?.name === 'Object'
+const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
 
 /**
  * @param  {Object} config
@@ -34,7 +34,7 @@ const reworder = (config, options = {}) => {
 
     for (let value of values) {
       if (value instanceof RegExp) {
-        value = value.source
+        value = value.source.replace(/\(/g, '(?:')
       } else if (typeof value !== 'string') {
         throw new Error('Config value must be string or RegExp')
       }
@@ -55,10 +55,10 @@ const reworder = (config, options = {}) => {
     let i
 
     for (i = 0; i < keyInfos.length && keyInfos[i].index <= index; i++) {
-      if (keyInfos[i].index === index) return keyInfos[i].key
+      if (keyInfos[i].index === index) break
     }
 
-    return keyInfos[Math.max(0, --i)].key
+    return keyInfos[i].key
   }
 
   const reword = input => {

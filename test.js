@@ -139,4 +139,21 @@ describe('reworder', () => {
       output: 'foo foo baz foo hello world'
     })
   })
+
+  it('replaces with regex with subgroups', () => {
+    const input = 'foo baz bam bit hello world'
+    const reword = reworder({ foo: /b(az|it)*/ })
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { match: 'baz', index: 4, key: 'foo' },
+        { match: 'bit', index: 12, key: 'foo' }
+      ],
+
+      output: 'foo foo bam foo hello world'
+    })
+  })
 })
