@@ -24,22 +24,44 @@ const reworder = (config, options = {}) => {
     throw new Error('Expected options.caseInsensitive to be a boolean')
   }
 
-  const patterns = []
   const keyInfos = []
+  const pattern = []
+  const patterns = []
+  const regexOpts = 'g' + (options.caseInsensitive ? 'i' : '')
 
   let index = 0
+  let isRegex
+  let regex
 
   for (const key in config) {
     const values = [].concat(config[key])
 
     for (let value of values) {
       if (value instanceof RegExp) {
+        isRegex = true
         value = value.source.replace(/\(/g, '(?:')
-      } else if (typeof value !== 'string') {
+      } else if (typeof value === 'string') {
+        isRegex = false
+      } else {
         throw new Error('Config value must be string or RegExp')
       }
 
-      patterns.push(`(\\b${value}\\b)`)
+      regex = new RegExp(value, regexOpts)
+
+      for (const pattern of patterns) {
+        if (pattern.regex.test(value) || regex.test(pattern.value)) {
+          const patternValue = pattern.isRegex ? `/${pattern.value}/` : `"${pattern.value}"`
+          const thisValue = isRegex ? `/${value}/` : `"${value}"`
+
+          throw new Error(
+            `Conflict: {${patternValue}: "${pattern.key}"}, {${thisValue}: "${key}"}`
+          )
+        }
+      }
+
+      pattern.push(`(\\b${value}\\b)`)
+      patterns.push({ isRegex, key, regex, value })
+
       ++index
     }
 
@@ -47,9 +69,7 @@ const reworder = (config, options = {}) => {
   }
 
   const lastIndex = ++index
-  const pattern = patterns.join('|')
-  const regexOpts = 'g' + (options.caseInsensitive ? 'i' : '')
-  const regex = new RegExp(pattern, regexOpts)
+  regex = new RegExp(pattern.join('|'), regexOpts)
 
   const getKey = index => {
     let i

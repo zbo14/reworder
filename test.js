@@ -156,4 +156,22 @@ describe('reworder', () => {
       output: 'foo foo bam foo hello world'
     })
   })
+
+  it('handles conflicting values (existing)', () => {
+    try {
+      reworder({ bar: /fo\w*?/, baz: 'foo' })
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Conflict: {/fo\\w*?/: "bar"}, {"foo": "baz"}')
+    }
+  })
+
+  it('handles conflicting values (new)', () => {
+    try {
+      reworder({ bar: 'foo', baz: /fo\w*?/ })
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Conflict: {"foo": "bar"}, {/fo\\w*?/: "baz"}')
+    }
+  })
 })
