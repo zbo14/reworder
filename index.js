@@ -46,10 +46,15 @@ const reworder = (config, options = {}) => {
         throw new Error('Config value must be string or RegExp')
       }
 
-      regex = new RegExp(value, regexOpts)
+      regex = new RegExp(`^${value}$`, regexOpts)
 
       for (const pattern of patterns) {
-        if (pattern.regex.test(value) || regex.test(pattern.value)) {
+        const isConflict = (
+          (pattern.isRegex && pattern.regex.test(value)) ||
+          (isRegex && regex.test(pattern.value))
+        )
+
+        if (isConflict) {
           const patternValue = pattern.isRegex ? `/${pattern.value}/` : `"${pattern.value}"`
           const thisValue = isRegex ? `/${value}/` : `"${value}"`
 

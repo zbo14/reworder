@@ -174,4 +174,12 @@ describe('reworder', () => {
       assert.strictEqual(err.message, 'Conflict: {"foo": "bar"}, {/fo\\w*?/: "baz"}')
     }
   })
+
+  it('doesn\'t throw on overlapping values', () => {
+    reworder({ bar: 'foo', baz: 'foofoo' })
+  })
+
+  it('doesn\'t throw on matching values that don\'t line up', () => {
+    reworder({ bar: /fo./, baz: 'abcfoo' })
+  })
 })
