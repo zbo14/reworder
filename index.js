@@ -1,6 +1,8 @@
 'use strict'
 
+const isBoolean = x => typeof x === 'boolean'
 const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
+const isUndefined = x => typeof x === 'undefined'
 
 const reworder = (config, options = {}) => {
   if (!Array.isArray(config) || !config.every(isObjectLiteral)) {
@@ -12,10 +14,17 @@ const reworder = (config, options = {}) => {
   }
 
   if (
-    options.caseInsensitive !== undefined &&
-    typeof options.caseInsensitive !== 'boolean'
+    !isUndefined(options.caseInsensitive) &&
+    !isBoolean(options.caseInsensitive)
   ) {
     throw new Error('Expected options.caseInsensitive to be a boolean')
+  }
+
+  if (
+    !isUndefined(options.variableSpacing) &&
+    !isBoolean(options.variableSpacing)
+  ) {
+    throw new Error('Expected options.variableSpacing to be a boolean')
   }
 
   const infos = []
@@ -42,6 +51,10 @@ const reworder = (config, options = {}) => {
         isRegex = false
       } else {
         throw new Error('Config key must be string or RegExp')
+      }
+
+      if (options.variableSpacing) {
+        key = key.replace(/ /g, ' +')
       }
 
       regex = new RegExp(`^${key}$`, regexOpts)

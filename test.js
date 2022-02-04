@@ -42,6 +42,15 @@ describe('reworder', () => {
     }
   })
 
+  it('throws if options.variableSpacing isn\'t boolean', () => {
+    try {
+      reworder([], { variableSpacing: null })
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Expected options.variableSpacing to be a boolean')
+    }
+  })
+
   it('throws if config key isn\'t string or RegExp', () => {
     try {
       reworder([{ key: 1, value: 'bar' }])
@@ -218,5 +227,25 @@ describe('reworder', () => {
       { key: /fo./, value: 'bar' },
       { key: 'abcfoo', value: 'baz' }
     ])
+  })
+
+  it('replaces with variable spacing', () => {
+    const input = 'foo bar baz bam hello   world'
+
+    const reword = reworder([
+      { key: 'hello world', value: 'helloworld' }
+    ], { variableSpacing: true })
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'hello   world', index: 16, value: 'helloworld' }
+      ],
+
+      output: 'foo bar baz bam helloworld'
+    })
   })
 })
