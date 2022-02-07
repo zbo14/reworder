@@ -6,27 +6,27 @@ const assert = require('assert')
 const reworder = require('.')
 
 describe('reworder', () => {
-  it('throws if config isn\'t array', () => {
+  it('throws if config contains non-object literal', () => {
     try {
-      reworder({})
+      reworder(1)
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Expected config to be an array of object literals')
+      assert.strictEqual(err.message, 'Expected config to be a non-empty array of object literals')
     }
   })
 
-  it('throws if config contains non-object literal', () => {
+  it('throws if config is empty', () => {
     try {
-      reworder([1])
+      reworder([])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Expected config to be an array of object literals')
+      assert.strictEqual(err.message, 'Expected config to be a non-empty array of object literals')
     }
   })
 
   it('throws if options isn\'t object literal', () => {
     try {
-      reworder([], Object.create(null))
+      reworder({}, Object.create(null))
       assert.fail('Should throw')
     } catch (err) {
       assert.strictEqual(err.message, 'Expected options to be an object literal')
@@ -35,7 +35,7 @@ describe('reworder', () => {
 
   it('throws if options.caseInsensitive isn\'t boolean', () => {
     try {
-      reworder([], { caseInsensitive: 1 })
+      reworder({}, { caseInsensitive: 1 })
       assert.fail('Should throw')
     } catch (err) {
       assert.strictEqual(err.message, 'Expected options.caseInsensitive to be a boolean')
@@ -44,7 +44,7 @@ describe('reworder', () => {
 
   it('throws if options.variableSpacing isn\'t boolean', () => {
     try {
-      reworder([], { variableSpacing: null })
+      reworder({}, { variableSpacing: null })
       assert.fail('Should throw')
     } catch (err) {
       assert.strictEqual(err.message, 'Expected options.variableSpacing to be a boolean')

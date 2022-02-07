@@ -7,8 +7,10 @@ const isString = x => typeof x === 'string'
 const isUndefined = x => typeof x === 'undefined'
 
 const reworder = (config, options = {}) => {
-  if (!Array.isArray(config) || !config.every(isObjectLiteral)) {
-    throw new Error('Expected config to be an array of object literals')
+  config = [].concat(config).filter(Boolean)
+
+  if (!config.length || !config.every(isObjectLiteral)) {
+    throw new Error('Expected config to be a non-empty array of object literals')
   }
 
   if (!isObjectLiteral(options)) {
