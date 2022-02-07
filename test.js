@@ -65,7 +65,25 @@ describe('reworder', () => {
       reworder([{ key: 'foo', value: Symbol('bar') }])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Config value must be string')
+      assert.strictEqual(err.message, 'Config value must be a string')
+    }
+  })
+
+  it('throws if config group isn\'t string or positive number', () => {
+    try {
+      reworder([{ key: 'foo', group: -1 }])
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Config group must be a string or positive integer')
+    }
+  })
+
+  it('throws if neither config value nor group specified', () => {
+    try {
+      reworder([{ key: 'foo', foo: 'bar' }])
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Config value or group must be specified')
     }
   })
 
@@ -172,7 +190,7 @@ describe('reworder', () => {
     })
   })
 
-  it('replaces with regex with subgroups', () => {
+  it('replaces with regex conntaining subgroups', () => {
     const input = 'foo baz bam bit hello world'
     const reword = reworder([{ key: /b(az|it)*/, value: 'foo' }])
     const result = reword(input)
@@ -186,6 +204,63 @@ describe('reworder', () => {
       ],
 
       output: 'foo foo bam foo hello world'
+    })
+  })
+
+  it('replaces with regex containing sub-subgroups', () => {
+    const input = 'foo bazbar baz bazbam bam bit hello world'
+    const reword = reworder([{ key: /b(az(bar|bam)|it)*/, value: 'foo' }])
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'bazbar', index: 4, value: 'foo' },
+        { key: 'bazbam', index: 15, value: 'foo' },
+        { key: 'bit', index: 26, value: 'foo' }
+      ],
+
+      output: 'foo foo baz foo bam foo hello world'
+    })
+  })
+
+  it('replaces with group instead of hardcoded value', () => {
+    const input = 'foo bazbar baz bazbam hello world'
+    const reword = reworder([{ key: /baz(bar|bam)/, group: 1 }])
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'bazbar', index: 4, value: 'bar' },
+        { key: 'bazbam', index: 15, value: 'bam' }
+      ],
+
+      output: 'foo bar baz bam hello world'
+    })
+  })
+
+  it('replaces with named group instead of hardcoded value', () => {
+    const input = 'foo bit bazbarofo baz bazbamfoo hello world'
+
+    const reword = reworder([
+      { key: 'bit', value: 'byte' },
+      { key: /baz(bar|bam)(?<foolike>foo|oof)/, group: 'foolike' }
+    ])
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'bit', index: 4, value: 'byte' },
+        { key: 'bazbamfoo', index: 22, value: 'foo' }
+      ],
+
+      output: 'foo byte bazbarofo baz foo hello world'
     })
   })
 

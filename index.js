@@ -2,6 +2,8 @@
 
 const isBoolean = x => typeof x === 'boolean'
 const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
+const isPositiveInteger = x => Number.isInteger(x) && x > 0
+const isString = x => typeof x === 'string'
 const isUndefined = x => typeof x === 'undefined'
 
 const reworder = (config, options = {}) => {
@@ -36,9 +38,17 @@ const reworder = (config, options = {}) => {
   let isRegex
   let regex
 
-  for (let { key, keys, value } of config) {
-    if (typeof value !== 'string') {
-      throw new Error('Config value must be string')
+  for (let { key, keys, group, value } of config) {
+    if (value && !isString(value)) {
+      throw new Error('Config value must be a string')
+    }
+
+    if (group && !isString(group) && !isPositiveInteger(group)) {
+      throw new Error('Config group must be a string or positive integer')
+    }
+
+    if (!value && !group) {
+      throw new Error('Config value or group must be specified')
     }
 
     keys = [].concat(key).concat(keys).filter(Boolean)
@@ -46,7 +56,7 @@ const reworder = (config, options = {}) => {
     for (let key of keys) {
       if (key instanceof RegExp) {
         isRegex = true
-        key = key.source.replace(/\(/g, '(?:')
+        key = key.source
       } else if (typeof key === 'string') {
         isRegex = false
       } else {
@@ -81,20 +91,20 @@ const reworder = (config, options = {}) => {
       ++index
     }
 
-    infos.push({ value, index })
+    infos.push({ group, value, index })
   }
 
   const lastIndex = ++index
   regex = new RegExp(pattern.join('|'), regexOpts)
 
-  const getValue = index => {
+  const getInfo = index => {
     let i
 
     for (i = 0; i < infos.length && infos[i].index <= index; i++) {
       if (infos[i].index === index) break
     }
 
-    return infos[i].value
+    return infos[i]
   }
 
   const reword = input => {
@@ -107,7 +117,14 @@ const reworder = (config, options = {}) => {
 
     while ((match = regex.exec(input))) {
       index = match.slice(1, lastIndex).findIndex(Boolean) + 1
-      const value = getValue(index)
+      let { value, group } = getInfo(index)
+
+      if (!value && group) {
+        value = isString(group)
+          ? match.groups[group]
+          : match[index + group]
+      }
+
       index = match.index - net
 
       output = (
