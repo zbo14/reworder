@@ -330,4 +330,26 @@ describe('reworder', () => {
       output: 'foo bar baz bam helloworld'
     })
   })
+
+  it('replaces words and returns additional properties in matches', () => {
+    const input = 'foo bar baz bam hello world'
+
+    const reword = reworder([
+      { key: 'foo', value: 'bar', bar: true },
+      { key: 'bar', value: 'foo', foo: true }
+    ])
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'foo', index: 0, value: 'bar', bar: true },
+        { key: 'bar', index: 4, value: 'foo', foo: true }
+      ],
+
+      output: 'bar foo baz bam hello world'
+    })
+  })
 })

@@ -40,7 +40,7 @@ const reworder = (config, options = {}) => {
   let isRegex
   let regex
 
-  for (let { key, keys, value, transform } of config) {
+  for (let { key, keys, value, transform, ...rest } of config) {
     if (value && !isString(value)) {
       throw new Error('Config value must be a string')
     }
@@ -93,7 +93,7 @@ const reworder = (config, options = {}) => {
       ++index
     }
 
-    infos.push({ value, transform, index })
+    infos.push({ ...rest, value, transform, index })
   }
 
   const lastInfoIndex = ++index
@@ -117,7 +117,7 @@ const reworder = (config, options = {}) => {
     let net = 0
     let output = input
 
-    const handleMatch = (key, index, value) => {
+    const handleMatch = (key, index, value, rest) => {
       const adjustedIndex = index - net
 
       output = (
@@ -126,7 +126,7 @@ const reworder = (config, options = {}) => {
         output.slice(adjustedIndex + key.length)
       )
 
-      matches.push({ key, index, value })
+      matches.push({ ...rest, key, index, value })
       net += key.length - value.length
     }
 
@@ -135,14 +135,14 @@ const reworder = (config, options = {}) => {
       const index = match.index
       const infoIndex = match.slice(1, lastInfoIndex).findIndex(Boolean) + 1
 
-      let { value, transform } = getInfo(infoIndex)
+      let { value, transform, ...rest } = getInfo(infoIndex)
       value = value || transform(match[0])
 
       if (value instanceof Promise) {
-        const promise = value.then(value => ({ key, index, value }))
+        const promise = value.then(value => ({ ...rest, key, index, value }))
         promises.push(promise)
       } else {
-        handleMatch(key, index, value)
+        handleMatch(key, index, value, rest)
       }
     }
 

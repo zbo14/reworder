@@ -1,6 +1,6 @@
 {
   "name": "reworder",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Replace words and phrases via custom mappings.",
   "main": "index.js",
   "repository": {
