@@ -34,7 +34,7 @@ const reworder = (config, options = {}) => {
   const infos = []
   const pattern = []
   const patterns = []
-  const regexOpts = 'g' + (options.caseInsensitive ? 'i' : '')
+  const regexOptions = 'g' + (options.caseInsensitive ? 'i' : '')
 
   let index = 0
   let isRegex
@@ -69,7 +69,7 @@ const reworder = (config, options = {}) => {
         key = key.replace(/ /g, ' +')
       }
 
-      regex = new RegExp(`^${key}$`, regexOpts)
+      regex = new RegExp(`^${key}$`, regexOptions)
 
       for (const pattern of patterns) {
         const isConflict = (
@@ -97,7 +97,7 @@ const reworder = (config, options = {}) => {
   }
 
   const lastInfoIndex = ++index
-  regex = new RegExp(pattern.join('|'), regexOpts)
+  regex = new RegExp(pattern.join('|'), regexOptions)
 
   const getInfo = index => {
     let i

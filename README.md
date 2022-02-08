@@ -60,6 +60,37 @@ console.log(result)
 // }
 ```
 
+**Replace by transform function:**
+
+```js
+const reword = reworder({
+  key: /ba\w/,
+  transform: key => key.slice(-1)
+})
+
+const input = 'abc foo hello world bar baz'
+const result = reword(input)
+
+console.log(result)
+
+// {
+//   input: 'abc foo hello world bar baz',
+//
+//   matches: [
+//     { key: 'bar', index: 20, value: 'r' },
+//     { key: 'baz', index: 24, value: 'z' }
+//   ],
+//
+//   output: 'abc foo hello world r z'
+// }
+```
+
+`transform` can be `async`, in which case the `reword` function returns a promise:
+
+```js
+const result = await reword(input)
+```
+
 **Replace with options:**
 
 ```js
@@ -93,7 +124,7 @@ console.log(result)
 
 ## Reference
 
-* `config` is an object literal or array of object literals. Each object literal must contain a `key` property (string or RegExp) and `value` (string).
+* `config` is an object literal or array of object literals. Each object literal must contain a `key` (string or RegExp) and either `value` (string) or `transform` (function). The `transform` function should accept a single argument- a string matching the `key`, and return a string or a promise that resolves to a string.
 * `options` is an object literal with the following properties:
     * `caseInsensitive` is a boolean indicating whether regex permits case insensitive matching.
     * `variableSpacing` is a boolean indicating whether the regex matches variable number of spaces.
