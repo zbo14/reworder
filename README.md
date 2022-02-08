@@ -60,48 +60,6 @@ console.log(result)
 // }
 ```
 
-**Replace with subgroup:**
-
-```js
-const reword = reworder({ key: /ba(\w)/, group: 1 })
-const input = 'abc foo hello world bar baz'
-const result = reword(input)
-
-console.log(result)
-
-// {
-//   input: 'abc foo hello world bar baz',
-//
-//   matches: [
-//     { key: 'bar', index: 20, value: 'r' },
-//     { key: 'baz', index: 24, value: 'z' }
-//   ],
-//
-//   output: 'abc foo hello world r z'
-// }
-```
-
-**Replace with named subgroup:**
-
-```js
-const reword = reworder({ key: /ba(?<letter>\w)/, group: 'letter' })
-const input = 'abc foo hello world bar baz'
-const result = reword(input)
-
-console.log(result)
-
-// {
-//   input: 'abc foo hello world bar baz',
-//
-//   matches: [
-//     { key: 'bar', index: 20, value: 'r' },
-//     { key: 'baz', index: 24, value: 'z' }
-//   ],
-//
-//   output: 'abc foo hello world r z'
-// }
-```
-
 **Replace with options:**
 
 ```js
@@ -135,7 +93,7 @@ console.log(result)
 
 ## Reference
 
-* `config` is an object literal or array of object literals. Each object literal must contain a `key` property (string or RegExp) and either a `value` (string) or `group` (number or string) property. If `group` is a number, it indicates the subgroup index. If it's a string, it corresponds to a named subgroup.
+* `config` is an object literal or array of object literals. Each object literal must contain a `key` property (string or RegExp) and `value` (string).
 * `options` is an object literal with the following properties:
     * `caseInsensitive` is a boolean indicating whether regex permits case insensitive matching.
     * `variableSpacing` is a boolean indicating whether the regex matches variable number of spaces.

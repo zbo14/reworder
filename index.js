@@ -2,7 +2,6 @@
 
 const isBoolean = x => typeof x === 'boolean'
 const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
-const isPositiveInteger = x => Number.isInteger(x) && x > 0
 const isString = x => typeof x === 'string'
 const isUndefined = x => typeof x === 'undefined'
 
@@ -40,17 +39,9 @@ const reworder = (config, options = {}) => {
   let isRegex
   let regex
 
-  for (let { key, keys, group, value } of config) {
-    if (value && !isString(value)) {
-      throw new Error('Config value must be a string')
-    }
-
-    if (group && !isString(group) && !isPositiveInteger(group)) {
-      throw new Error('Config group must be a string or positive integer')
-    }
-
-    if (!value && !group) {
-      throw new Error('Config value or group must be specified')
+  for (let { key, keys, value } of config) {
+    if (!value || !isString(value)) {
+      throw new Error('Config value must be a non-empty string')
     }
 
     keys = [].concat(key).concat(keys).filter(Boolean)
@@ -58,7 +49,7 @@ const reworder = (config, options = {}) => {
     for (let key of keys) {
       if (key instanceof RegExp) {
         isRegex = true
-        key = key.source
+        key = key.source.replace(/\(/g, '(?:')
       } else if (typeof key === 'string') {
         isRegex = false
       } else {
@@ -93,7 +84,7 @@ const reworder = (config, options = {}) => {
       ++index
     }
 
-    infos.push({ group, value, index })
+    infos.push({ value, index })
   }
 
   const lastIndex = ++index
@@ -119,14 +110,7 @@ const reworder = (config, options = {}) => {
 
     while ((match = regex.exec(input))) {
       index = match.slice(1, lastIndex).findIndex(Boolean) + 1
-      let { value, group } = getInfo(index)
-
-      if (!value && group) {
-        value = isString(group)
-          ? match.groups[group]
-          : match[index + group]
-      }
-
+      const { value } = getInfo(index)
       index = match.index - net
 
       output = (

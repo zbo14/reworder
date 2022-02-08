@@ -65,25 +65,16 @@ describe('reworder', () => {
       reworder([{ key: 'foo', value: Symbol('bar') }])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Config value must be a string')
+      assert.strictEqual(err.message, 'Config value must be a non-empty string')
     }
   })
 
-  it('throws if config group isn\'t string or positive number', () => {
+  it('throws if config value isn\'t specified', () => {
     try {
-      reworder([{ key: 'foo', group: -1 }])
+      reworder([{ key: 'foo', value: null }])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Config group must be a string or positive integer')
-    }
-  })
-
-  it('throws if neither config value nor group specified', () => {
-    try {
-      reworder([{ key: 'foo', foo: 'bar' }])
-      assert.fail('Should throw')
-    } catch (err) {
-      assert.strictEqual(err.message, 'Config value or group must be specified')
+      assert.strictEqual(err.message, 'Config value must be a non-empty string')
     }
   })
 
@@ -222,45 +213,6 @@ describe('reworder', () => {
       ],
 
       output: 'foo foo baz foo bam foo hello world'
-    })
-  })
-
-  it('replaces with group instead of hardcoded value', () => {
-    const input = 'foo bazbar baz bazbam hello world'
-    const reword = reworder([{ key: /baz(bar|bam)/, group: 1 }])
-    const result = reword(input)
-
-    assert.deepStrictEqual(result, {
-      input,
-
-      matches: [
-        { key: 'bazbar', index: 4, value: 'bar' },
-        { key: 'bazbam', index: 15, value: 'bam' }
-      ],
-
-      output: 'foo bar baz bam hello world'
-    })
-  })
-
-  it('replaces with named group instead of hardcoded value', () => {
-    const input = 'foo bit bazbarofo baz bazbamfoo hello world'
-
-    const reword = reworder([
-      { key: 'bit', value: 'byte' },
-      { key: /baz(bar|bam)(?<foolike>foo|oof)/, group: 'foolike' }
-    ])
-
-    const result = reword(input)
-
-    assert.deepStrictEqual(result, {
-      input,
-
-      matches: [
-        { key: 'bit', index: 4, value: 'byte' },
-        { key: 'bazbamfoo', index: 22, value: 'foo' }
-      ],
-
-      output: 'foo byte bazbarofo baz foo hello world'
     })
   })
 
