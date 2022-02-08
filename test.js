@@ -65,16 +65,25 @@ describe('reworder', () => {
       reworder([{ key: 'foo', value: Symbol('bar') }])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Config value must be a non-empty string')
+      assert.strictEqual(err.message, 'Config value must be a string')
     }
   })
 
-  it('throws if config value isn\'t specified', () => {
+  it('throws if config transform isn\'t function', () => {
     try {
-      reworder([{ key: 'foo', value: null }])
+      reworder([{ key: 'foo', transform: 'bar' }])
       assert.fail('Should throw')
     } catch (err) {
-      assert.strictEqual(err.message, 'Config value must be a non-empty string')
+      assert.strictEqual(err.message, 'Config transform must be a function')
+    }
+  })
+
+  it('throws if config value or transform isn\'t specified', () => {
+    try {
+      reworder([{ key: 'foo', blah: 'bar' }])
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Config value or transform must be specified')
     }
   })
 
@@ -213,6 +222,52 @@ describe('reworder', () => {
       ],
 
       output: 'foo foo baz foo bam foo hello world'
+    })
+  })
+
+  it('replaces with transform', () => {
+    const input = 'foo bazbar baz bazbam bam bit hello world'
+
+    const reword = reworder({
+      key: /b(az(bar|bam)|it)*/,
+      transform: x => x.slice(-1)
+    })
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'bazbar', index: 4, value: 'r' },
+        { key: 'bazbam', index: 15, value: 'm' },
+        { key: 'bit', index: 26, value: 't' }
+      ],
+
+      output: 'foo r baz m bam t hello world'
+    })
+  })
+
+  it('replaces with async transform', async () => {
+    const input = 'foo bazbar baz bazbam bam bit hello world'
+
+    const reword = reworder({
+      key: /b(az(bar|bam)|it)*/,
+      transform: async x => x.slice(-1)
+    })
+
+    const result = await reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'bazbar', index: 4, value: 'r' },
+        { key: 'bazbam', index: 15, value: 'm' },
+        { key: 'bit', index: 26, value: 't' }
+      ],
+
+      output: 'foo r baz m bam t hello world'
     })
   })
 

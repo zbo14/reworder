@@ -1,6 +1,7 @@
 'use strict'
 
 const isBoolean = x => typeof x === 'boolean'
+const isFunction = x => typeof x === 'function'
 const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
 const isString = x => typeof x === 'string'
 const isUndefined = x => typeof x === 'undefined'
@@ -39,9 +40,17 @@ const reworder = (config, options = {}) => {
   let isRegex
   let regex
 
-  for (let { key, keys, value } of config) {
-    if (!value || !isString(value)) {
-      throw new Error('Config value must be a non-empty string')
+  for (let { key, keys, value, transform } of config) {
+    if (value && !isString(value)) {
+      throw new Error('Config value must be a string')
+    }
+
+    if (transform && !isFunction(transform)) {
+      throw new Error('Config transform must be a function')
+    }
+
+    if (!value && !transform) {
+      throw new Error('Config value or transform must be specified')
     }
 
     keys = [].concat(key).concat(keys).filter(Boolean)
@@ -84,10 +93,10 @@ const reworder = (config, options = {}) => {
       ++index
     }
 
-    infos.push({ value, index })
+    infos.push({ value, transform, index })
   }
 
-  const lastIndex = ++index
+  const lastInfoIndex = ++index
   regex = new RegExp(pattern.join('|'), regexOpts)
 
   const getInfo = index => {
@@ -102,28 +111,50 @@ const reworder = (config, options = {}) => {
 
   const reword = input => {
     const matches = []
+    const promises = []
 
-    let index
     let match
     let net = 0
     let output = input
 
-    while ((match = regex.exec(input))) {
-      index = match.slice(1, lastIndex).findIndex(Boolean) + 1
-      const { value } = getInfo(index)
-      index = match.index - net
+    const handleMatch = (key, index, value) => {
+      const adjustedIndex = index - net
 
       output = (
-        output.slice(0, index) +
+        output.slice(0, adjustedIndex) +
         value +
-        output.slice(index + match[0].length)
+        output.slice(adjustedIndex + key.length)
       )
 
-      matches.push({ key: match[0], index: match.index, value })
-      net += match[0].length - value.length
+      matches.push({ key, index, value })
+      net += key.length - value.length
     }
 
-    return { input, matches, output }
+    while ((match = regex.exec(input))) {
+      const key = match[0]
+      const index = match.index
+      const infoIndex = match.slice(1, lastInfoIndex).findIndex(Boolean) + 1
+
+      let { value, transform } = getInfo(infoIndex)
+      value = value || transform(match[0])
+
+      if (value instanceof Promise) {
+        const promise = value.then(value => ({ key, index, value }))
+        promises.push(promise)
+      } else {
+        handleMatch(key, index, value)
+      }
+    }
+
+    if (!promises.length) return { input, matches, output }
+
+    return Promise.all(promises).then(results => {
+      for (const { key, index, value } of results) {
+        handleMatch(key, index, value)
+      }
+
+      return { input, matches, output }
+    })
   }
 
   reword.regex = regex
