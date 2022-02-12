@@ -1,5 +1,6 @@
 # reworder
 
+[![npm](https://img.shields.io/npm/v/reworder.svg?color=brightgreen)](https://www.npmjs.com/package/reworder)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://standardjs.com/)
 
 Replace words and phrases via custom mappings!
@@ -101,21 +102,22 @@ const config = [
 
 const options = {
   caseInsensitive: true,
+  includePunctuation: ',',
   variableSpacing: true
 }
 
 const reword = reworder(config, options)
-const input = 'abc FoO hello   world bar baz'
+const input = 'abc FoO hello,   world bar baz'
 const result = reword(input)
 
 console.log(result)
 
 // {
-//   input: 'abc FoO hello   world bar baz',
+//   input: 'abc FoO hello,   world bar baz',
 //
 //   matches: [
 //     { key: 'FoO', index: 4, value: 'bar' },
-//     { key: 'hello   world', index: 8, value: 'helloworld' }
+//     { key: 'hello,   world', index: 8, value: 'helloworld' }
 //   ],
 //
 //   output: 'abc bar helloworld bar baz'
@@ -127,6 +129,7 @@ console.log(result)
 * `config` is an object literal or array of object literals. Each object literal must contain a `key` (string or RegExp) and either `value` (string) or `transform` (function). The `transform` function should accept a single argument- a string matching the `key`, and return a string or a promise that resolves to a string.
 * `options` is an object literal with the following properties:
     * `caseInsensitive` is a boolean indicating whether regex permits case insensitive matching.
+    * `includePunctuation` is a boolean or string indicating whether/what punctuation can be included in matches.
     * `variableSpacing` is a boolean indicating whether the regex matches variable number of spaces.
 
 ## Test

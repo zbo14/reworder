@@ -42,6 +42,15 @@ describe('reworder', () => {
     }
   })
 
+  it('throws if options.includePunctuation isn\'t boolean or punctuation', () => {
+    try {
+      reworder({}, { includePunctuation: 'not punctuation' })
+      assert.fail('Should throw')
+    } catch (err) {
+      assert.strictEqual(err.message, 'Expected options.includePunctuation to be a boolean or string containing punctuation')
+    }
+  })
+
   it('throws if options.variableSpacing isn\'t boolean', () => {
     try {
       reworder({}, { variableSpacing: null })
@@ -106,6 +115,30 @@ describe('reworder', () => {
       ],
 
       output: 'bar foo baz bam hello world'
+    })
+  })
+
+  it('works with punctuation', () => {
+    const input = 'foo! bar? baz bam hello world.'
+
+    const reword = reworder([
+      { key: 'foo', value: 'bar' },
+      { key: 'bar', value: 'foo' },
+      { key: 'hello world', value: 'helloworld' }
+    ])
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'foo', index: 0, value: 'bar' },
+        { key: 'bar', index: 5, value: 'foo' },
+        { key: 'hello world', index: 18, value: 'helloworld' }
+      ],
+
+      output: 'bar! foo? baz bam helloworld.'
     })
   })
 
@@ -328,6 +361,46 @@ describe('reworder', () => {
       ],
 
       output: 'foo bar baz bam helloworld'
+    })
+  })
+
+  it('replaces with punctuation', () => {
+    const input = 'foo bar baz bam hello, world'
+
+    const reword = reworder([
+      { key: 'hello world', value: 'helloworld' }
+    ], { includePunctuation: true })
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'hello, world', index: 16, value: 'helloworld' }
+      ],
+
+      output: 'foo bar baz bam helloworld'
+    })
+  })
+
+  it('replaces with custom punctuation', () => {
+    const input = 'foo bar baz bam hello, world|hello. world'
+
+    const reword = reworder([
+      { key: 'hello world', value: 'helloworld' }
+    ], { includePunctuation: ',' })
+
+    const result = reword(input)
+
+    assert.deepStrictEqual(result, {
+      input,
+
+      matches: [
+        { key: 'hello, world', index: 16, value: 'helloworld' }
+      ],
+
+      output: 'foo bar baz bam helloworld|hello. world'
     })
   })
 

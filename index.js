@@ -1,8 +1,11 @@
 'use strict'
 
+const DEFAULT_PUNCTUATION = ',;:.?!'
+
 const isBoolean = x => typeof x === 'boolean'
 const isFunction = x => typeof x === 'function'
 const isObjectLiteral = x => (x.constructor || {}).name === 'Object'
+const isPunctuation = x => isString(x) && Array.from(x).every(x => DEFAULT_PUNCTUATION.includes(x))
 const isString = x => typeof x === 'string'
 const isUndefined = x => typeof x === 'undefined'
 
@@ -22,6 +25,14 @@ const reworder = (config, options = {}) => {
     !isBoolean(options.caseInsensitive)
   ) {
     throw new Error('Expected options.caseInsensitive to be a boolean')
+  }
+
+  if (
+    !isUndefined(options.includePunctuation) &&
+    !isBoolean(options.includePunctuation) &&
+    !isPunctuation(options.includePunctuation)
+  ) {
+    throw new Error('Expected options.includePunctuation to be a boolean or string containing punctuation')
   }
 
   if (
@@ -63,6 +74,14 @@ const reworder = (config, options = {}) => {
         isRegex = false
       } else {
         throw new Error('Config key must be string or RegExp')
+      }
+
+      if (options.includePunctuation) {
+        const punctuation = isString(options.includePunctuation)
+          ? options.includePunctuation
+          : DEFAULT_PUNCTUATION
+
+        key = key.replace(/ /g, `[${punctuation}] `)
       }
 
       if (options.variableSpacing) {
